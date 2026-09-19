@@ -1,0 +1,24 @@
+name: ci_edw
+version: '1.0.0'
+config-version: 2
+
+profile: ci_edw
+
+model-paths: ["models"]
+test-paths: ["tests"]
+
+# dbt Cloud runs this project from Bitbucket on a schedule. Nothing here should assume a
+# local dbt install --- in-lab verification happens with SQL in Snowflake.
+models:
+  ci_edw:
+    +materialized: table
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+
+vars:
+  # Parameterised so the same code runs against a sandbox schema and against production
+  # without editing model SQL. Session 3's deployment checklist looks for exactly this.
+  source_schema: DE_HOL_SHARED
+  reporting_year: 2025

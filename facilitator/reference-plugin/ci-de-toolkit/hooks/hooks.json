@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .cortex/plugins/ci-de-toolkit/hooks/validate-bash.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

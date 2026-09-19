@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.Python
+
+# Streamlit local runs
+.streamlit/secrets.toml
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+profiles.yml
+
+# Credentials --- never commit these
+*.p8
+*.pem
+connections.toml
+.env
+
+# OS
+.DS_Store
+Thumbs.db

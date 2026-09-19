@@ -1,0 +1,11 @@
+{
+  "name": "ci-de-toolkit",
+  "description": "CI Financial data engineering toolkit: pre-deployment review standards, a production safety hook, and an autonomous dbt reviewer.",
+  "version": "1.0.0",
+  "author": {
+    "name": "CI Financial Data Engineering"
+  },
+  "skills": ["./skills"],
+  "agents": ["./agents"],
+  "hooks": "./hooks/hooks.json"
+}

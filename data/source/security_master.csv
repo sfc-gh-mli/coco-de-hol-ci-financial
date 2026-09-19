@@ -1,0 +1,61 @@
+SECURITY_ID,TICKER,SECURITY_NAME,SECTOR,CURRENCY,ASSET_TYPE
+10001,EQ001.CAD,Equity Holding 001,Financials,CAD,EQUITY
+10002,EQ002.USD,Equity Holding 002,Energy,USD,EQUITY
+10003,EQ003.EUR,Equity Holding 003,Materials,EUR,EQUITY
+10004,EQ004.CAD,Equity Holding 004,Industrials,CAD,EQUITY
+10005,EQ005.USD,Equity Holding 005,Technology,USD,EQUITY
+10006,EQ006.EUR,Equity Holding 006,Health Care,EUR,EQUITY
+10007,EQ007.CAD,Equity Holding 007,Consumer Staples,CAD,EQUITY
+10008,EQ008.USD,Equity Holding 008,Consumer Discretionary,USD,EQUITY
+10009,EQ009.EUR,Equity Holding 009,Utilities,EUR,EQUITY
+10010,EQ010.CAD,Equity Holding 010,Communication Services,CAD,EQUITY
+10011,EQ011.USD,Equity Holding 011,Real Estate,USD,EQUITY
+10012,EQ012.EUR,Equity Holding 012,Financials,EUR,EQUITY
+10013,EQ013.CAD,Equity Holding 013,Energy,CAD,EQUITY
+10014,EQ014.USD,Equity Holding 014,Materials,USD,EQUITY
+10015,EQ015.EUR,Equity Holding 015,Industrials,EUR,EQUITY
+10016,EQ016.CAD,Equity Holding 016,Technology,CAD,EQUITY
+10017,EQ017.USD,Equity Holding 017,Health Care,USD,EQUITY
+10018,EQ018.EUR,Equity Holding 018,Consumer Staples,EUR,EQUITY
+10019,EQ019.CAD,Equity Holding 019,Consumer Discretionary,CAD,EQUITY
+10020,EQ020.USD,Equity Holding 020,Utilities,USD,EQUITY
+10021,EQ021.EUR,Equity Holding 021,Communication Services,EUR,EQUITY
+10022,EQ022.CAD,Equity Holding 022,Real Estate,CAD,EQUITY
+10023,EQ023.USD,Equity Holding 023,Financials,USD,EQUITY
+10024,EQ024.EUR,Equity Holding 024,Energy,EUR,EQUITY
+10025,EQ025.CAD,Equity Holding 025,Materials,CAD,EQUITY
+10026,EQ026.USD,Equity Holding 026,Industrials,USD,EQUITY
+10027,EQ027.EUR,Equity Holding 027,Technology,EUR,EQUITY
+10028,EQ028.CAD,Equity Holding 028,Health Care,CAD,EQUITY
+10029,EQ029.USD,Equity Holding 029,Consumer Staples,USD,EQUITY
+10030,EQ030.EUR,Equity Holding 030,Consumer Discretionary,EUR,EQUITY
+10031,EQ031.CAD,Equity Holding 031,Utilities,CAD,EQUITY
+10032,EQ032.USD,Equity Holding 032,Communication Services,USD,EQUITY
+10033,EQ033.EUR,Equity Holding 033,Real Estate,EUR,EQUITY
+10034,EQ034.CAD,Equity Holding 034,Financials,CAD,EQUITY
+10035,EQ035.USD,Equity Holding 035,Energy,USD,EQUITY
+10036,EQ036.EUR,Equity Holding 036,Materials,EUR,EQUITY
+10037,EQ037.CAD,Equity Holding 037,Industrials,CAD,EQUITY
+10038,EQ038.USD,Equity Holding 038,Technology,USD,EQUITY
+10039,EQ039.EUR,Equity Holding 039,Health Care,EUR,EQUITY
+10040,EQ040.CAD,Equity Holding 040,Consumer Staples,CAD,EQUITY
+10041,EQ041.USD,Equity Holding 041,Consumer Discretionary,USD,EQUITY
+10042,EQ042.EUR,Equity Holding 042,Utilities,EUR,EQUITY
+10043,EQ043.CAD,Equity Holding 043,Communication Services,CAD,EQUITY
+10044,EQ044.USD,Equity Holding 044,Real Estate,USD,EQUITY
+10045,EQ045.EUR,Equity Holding 045,Financials,EUR,EQUITY
+10046,EQ046.EUR,Equity Holding 046,Energy,EUR,EQUITY
+10047,EQ047.EUR,Equity Holding 047,Materials,EUR,EQUITY
+10048,EQ048.EUR,Equity Holding 048,Industrials,EUR,EQUITY
+10049,BND049.CAD,Bond Series 049,Government,CAD,BOND
+10050,BND050.EUR,Bond Series 050,Government,EUR,BOND
+10051,BND051.EUR,Bond Series 051,Government,EUR,BOND
+10052,BND052.CAD,Bond Series 052,Government,CAD,BOND
+10053,BND053.EUR,Bond Series 053,Government,EUR,BOND
+10054,BND054.USD,Bond Series 054,Government,USD,BOND
+10055,BND055.EUR,Bond Series 055,Government,EUR,BOND
+10056,BND056.USD,Bond Series 056,Government,USD,BOND
+10057,BND057.EUR,Bond Series 057,Government,EUR,BOND
+10058,BND058.EUR,Bond Series 058,Government,EUR,BOND
+10059,BND059.EUR,Bond Series 059,Government,EUR,BOND
+10060,BND060.USD,Bond Series 060,Government,USD,BOND

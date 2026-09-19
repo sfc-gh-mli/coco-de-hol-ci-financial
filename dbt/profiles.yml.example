@@ -1,0 +1,28 @@
+# Local profile for running dbt against the CI sandbox.
+#
+# dbt Cloud does not use this file --- it holds its own connection config. This exists only
+# so that Session 6 can run `dbt build` locally if the tooling is available. If it is not,
+# Session 6 degrades to writing the model and verifying with SQL in Snowflake, which is the
+# documented fallback.
+#
+# Copy to ~/.dbt/profiles.yml (or merge the ci_edw block into your existing file) and fill
+# in the placeholders. This file lives outside the repo once copied, so credentials are
+# never at risk of being committed.
+
+ci_edw:
+  target: sandbox
+  outputs:
+    sandbox:
+      type: snowflake
+      account: "{{CI_ACCOUNT_IDENTIFIER}}"
+      user: "{{CI_USERNAME}}"
+
+      # SSO, matching how Cortex Code Desktop connects. No password on disk.
+      authenticator: externalbrowser
+
+      role: "{{CI_ROLE}}"
+      database: "{{CI_SANDBOX_DB}}"
+      warehouse: "{{CI_WAREHOUSE}}"
+      schema: DE_HOL_XX        # your own schema --- replace XX with your initials
+      threads: 4
+      client_session_keep_alive: False

@@ -1,0 +1,6 @@
+BENCHMARK_ID,BENCHMARK_NAME,IS_BLEND
+BM-CAD-EQ,S&P/TSX Composite Total Return,N
+BM-GLB-EQ,MSCI World Total Return (CAD),N
+BM-CAD-FI,FTSE Canada Universe Bond,N
+BM-US-EQ,S&P 500 Total Return (CAD),N
+BM-BLEND-6040,60/40 Canadian Balanced Blend,Y

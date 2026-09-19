@@ -1,0 +1,46 @@
+version: 2
+
+sources:
+  - name: ci_shared
+    description: >
+      Read-only source data for the workshop, loaded once by the facilitator. Attendees have
+      SELECT only. All raw table references must go through this file rather than naming the
+      database and schema inline --- that convention is enforced by AGENTS.md and checked by
+      the deployment-checklist skill.
+    database: "{{ env_var('CI_SANDBOX_DB', 'CI_SANDBOX') }}"
+    schema: "{{ var('source_schema') }}"
+    tables:
+      - name: fund_master
+        description: Fund reference data, one row per mandate.
+      - name: benchmark_master
+        description: Benchmark reference data.
+      - name: benchmark_components
+        description: Benchmark composition. Blends carry one row per component.
+      - name: security_master
+        description: Security reference data including local trading currency.
+      - name: holdings_daily
+        description: "Daily position snapshots. Grain: fund x date x security."
+      - name: prices_daily
+        description: "Daily closing prices in LOCAL currency, not CAD. Grain: security x date."
+      - name: fx_rates_daily
+        description: >
+          Daily FX rates, including a CAD-to-CAD identity row so joins need no special
+          casing. Starts 2024-12-24 so January 2025 has a prior business day available.
+      - name: cash_flows
+        description: >
+          External cash flows and income distributions. Distributions are recorded here but
+          are not necessarily treated as external flows for return purposes.
+      - name: fund_expenses_daily
+        description: "Daily expense accruals struck on that day's NAV. Grain: fund x date."
+      - name: index_returns_daily
+        description: "Daily index total returns, in PERCENT. Grain: index x date."
+      - name: investor_accounts
+        description: >
+          Retail investor accounts. Contains PII, including free-text KYC notes with
+          identifiers embedded in prose. Never include this table in an outbound extract
+          without redaction.
+      - name: vendor_fund_performance_monthly
+        description: >
+          The vendor-supplied target. Produced by Meridian Performance Analytics from the
+          other tables in this schema, using a methodology that is only partly documented.
+          Grain: fund x month.
