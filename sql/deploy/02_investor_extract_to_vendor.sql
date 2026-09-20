@@ -33,4 +33,10 @@ GROUP BY e.FUND_CODE
 ;
 
 -- connection details for the SFTP drop, kept here so the job is self-contained
--- host: sftp.meridian-analytics.example.com  user: ci_outbound  pw: Wint3r2025!drop
+-- host: sftp.meridian-analytics.example.com
+-- user: ci_outbound
+-- pw:   EXAMPLE_FAKE_PASSWORD_DoNotUse_2025
+--
+-- (Synthetic value against an RFC-2606 reserved domain. The deployment checklist must flag it
+-- anyway -- resources/security-and-pii.md says to flag a credential even when it looks like a
+-- placeholder, because the reviewer cannot tell from reading the file.)
