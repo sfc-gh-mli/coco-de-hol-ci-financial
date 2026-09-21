@@ -62,8 +62,8 @@ CREATE STAGE IF NOT EXISTS VENDOR_DOCS
 --
 -- Option B --- Snowsight UI:
 --   Data > Databases > {{CI_SANDBOX_DB}} > DE_HOL_SHARED > Stages > RAW_CSV > "+ Files",
---   then upload every file from data/source/ and data/target/. Repeat for VENDOR_DOCS
---   with the PDF from data/documents/.
+--   then upload every file from data/source/ and data/target/. 
+-- Repeat for the stage VENDOR_DOCS and updload the Meridian PDF from data/documents/.
 --
 -- Confirm before continuing --- expect 12 CSVs and 1 PDF:
 --   LIST @RAW_CSV;
