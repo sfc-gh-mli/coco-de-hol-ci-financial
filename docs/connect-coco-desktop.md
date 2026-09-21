@@ -8,6 +8,22 @@ If you get stuck, come with the error message — we will sort it out at 9:05.
 
 ---
 
+## Two things, and they are easy to confuse
+
+**The workshop guide is a hosted web app.** You will be given a URL. Keep it open in a browser
+tab next to Cortex Code Desktop — every prompt is copied from there and pasted into the agent.
+There is nothing to install and nothing to run.
+
+**The repo you clone in step 4 is a workspace for the agent**, not the guide. Cortex Code needs
+local files for Sessions 1, 3 and 6: it writes `AGENTS.md` into the project root, reviews the SQL
+in `sql/deploy/`, creates a skill in the workspace, and works on the dbt project. Sessions 2, 4
+and 5 touch only Snowflake.
+
+**The lab data is already loaded** into `DE_HOL_SHARED` by the facilitator. You never upload a
+CSV.
+
+---
+
 ## What you need from the facilitator
 
 | Item | Value |

@@ -14,6 +14,33 @@ st.info(
 
 st.space("small")
 
+st.markdown("#### Two things, and they are easy to confuse")
+
+with st.container(border=True):
+    st.markdown("""
+**This guide** — the page you are reading — is a hosted web app. You do not download it, install
+it, or run it. Just keep this URL open in a browser tab alongside Cortex Code Desktop. Every
+prompt in the workshop is copied from here and pasted there.
+
+**The repo** — you do clone that, in step 4. Not for this guide, but because Cortex Code Desktop
+needs local files to work on:
+
+| Session | Needs the cloned repo? | What it uses |
+|---|---|---|
+| 1 | Yes | Writes `AGENTS.md` into the project root |
+| 2 | No | Reads data already loaded in Snowflake |
+| 3 | **Yes** | Reviews the SQL files in `sql/deploy/`, and creates a skill in the workspace |
+| 4 | No | Reads data already loaded in Snowflake |
+| 5 | No | Creates objects in Snowflake |
+| 6 | Yes | The dbt project in `dbt/` |
+
+The lab data is **already loaded** into `DE_HOL_SHARED` by the facilitator. You never upload a
+CSV. The download buttons in Session 2 are only there if you want a local copy to poke at
+afterwards.
+""")
+
+st.space("small")
+
 st.markdown("#### What you need from the facilitator")
 
 with st.container(border=True):
@@ -111,6 +138,9 @@ st.markdown("#### Step 4: Clone the repo and trust the workspace")
 
 with st.container(border=True):
     st.markdown("""
+This gives Cortex Code Desktop a project to work in. It is **not** how you get this guide —
+the guide is the browser tab you are reading.
+
 ```bash
 git clone https://github.com/sfc-gh-mli/coco-de-hol-ci-financial.git
 cd coco-de-hol-ci-financial
