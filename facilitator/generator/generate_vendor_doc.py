@@ -28,9 +28,16 @@ Usage:
 from pathlib import Path
 
 from fpdf import FPDF
+from fpdf.fpdf import FPDF_VERSION
 
 OUT = Path(__file__).resolve().parent.parent.parent / "data" / "documents"
 FILENAME = "meridian_performance_methodology_2025.pdf"
+
+# Pinned so the PDF is byte-reproducible. fpdf stamps datetime.now() into /CreationDate by
+# default, which means an unchanged regeneration still shows up as a modified file in git and
+# breaks the "regenerate and confirm a clean working tree" reproducibility check. Matches the
+# document's stated effective date rather than the build time, which is also more honest.
+CREATION_DATE = "D:20250101000000"
 
 # fpdf 1.7 is latin-1 only, so everything here stays plain ASCII on purpose.
 
@@ -145,6 +152,21 @@ VERSION_HISTORY = [
 
 
 class Doc(FPDF):
+    def _putinfo(self):
+        """Same as FPDF._putinfo but with a fixed creation date.
+
+        Overridden rather than post-processing the output bytes so the reason lives next to the
+        behaviour. See CREATION_DATE above.
+        """
+        self._out("/Producer " + self._textstring("PyFPDF " + FPDF_VERSION
+                                                 + " http://pyfpdf.googlecode.com/"))
+        for attr, key in (("title", "/Title"), ("subject", "/Subject"),
+                          ("author", "/Author"), ("keywords", "/Keywords"),
+                          ("creator", "/Creator")):
+            if hasattr(self, attr):
+                self._out(f"{key} " + self._textstring(getattr(self, attr)))
+        self._out("/CreationDate " + self._textstring(CREATION_DATE))
+
     def header(self):
         if self.page_no() == 1:
             return

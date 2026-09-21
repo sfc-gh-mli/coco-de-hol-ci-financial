@@ -113,22 +113,36 @@ Attendee schemas follow `DE_HOL_<INITIALS>`; shared data lives in `DE_HOL_SHARED
 
 ## Facilitator setup
 
+> **The dataset is already generated and committed.** You do not need to run the generator —
+> `data/source/`, `data/target/` and `data/documents/` are in the repo. Step 2 loads those files
+> straight into Snowflake.
+
 1. **Fill in the five placeholders.**
-2. **Regenerate the data if you changed the generator** (not normally needed — the committed CSVs
-   are reproducible from seed `20260918`):
-   ```bash
-   python3 facilitator/generator/generate_data.py --verify
-   python3 facilitator/generator/generate_vendor_doc.py
-   ```
-   `--verify` asserts the puzzle is still solvable: each rule detectable, each residual correlated
-   with the driver an attendee would spot, the discovery ladder monotone, and 71 of 72 rows
-   reconciling.
-3. **Load the shared schema** — `scripts/00_facilitator_load_shared.sql`, at least 3 days ahead.
-4. **Create attendee schemas** — `scripts/01_attendee_schema.sql`, once per attendee.
-5. **Confirm AI functions work** in the sandbox region and that the role has
+2. **Load the shared schema** — `scripts/00_facilitator_load_shared.sql`, at least 3 days ahead.
+   Upload the committed CSVs and the PDF to the stages it creates, then run the `COPY INTO`
+   statements. The script has the upload commands and a row-count check.
+3. **Create attendee schemas** — `scripts/01_attendee_schema.sql`, once per attendee.
+4. **Confirm AI functions work** in the sandbox region and that the role has
    `SNOWFLAKE.CORTEX_USER`. Session 4 and prompt 2.4 need it; `run-of-show.md` has the fallback.
-6. **Send `docs/connect-coco-desktop.md`** as a pre-read.
-7. **Read `facilitator/SOLUTION.md`** and run the lab yourself once.
+5. **Send `docs/connect-coco-desktop.md`** as a pre-read.
+6. **Read `facilitator/SOLUTION.md`** and run the lab yourself once.
+
+### Optional: regenerating the dataset
+
+Only needed if you are changing the scenario or the methodology rules, or you want to confirm the
+puzzle still holds. See `facilitator/generator/README.md` for the detail.
+
+```bash
+python3 -m pip install -r facilitator/generator/requirements.txt
+
+# Runs from any directory --- output paths resolve from the script's own location.
+python3 facilitator/generator/generate_data.py --verify
+python3 facilitator/generator/generate_vendor_doc.py
+```
+
+`--verify` asserts the exercise still works: each rule detectable, each residual correlated with
+a driver an attendee would test, the discovery ladder monotone, 71 of 72 rows reconciling, and the
+December outlier still visible. Use `--no-write` to check without touching the committed CSVs.
 
 ---
 
