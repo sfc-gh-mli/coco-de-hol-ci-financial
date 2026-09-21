@@ -1,5 +1,5 @@
 -- =====================================================================================
--- ATTENDEE SCHEMA --- run once per attendee, at least 3 days before the workshop
+-- ATTENDEE SCHEMA --- OPTION 1: run once per attendee, at least 3 days before the workshop
 -- =====================================================================================
 -- Each attendee needs somewhere to write: views, a stored procedure, an audit table, a
 -- task. Nobody should be creating schemas during the lab.
@@ -29,7 +29,35 @@ GRANT CREATE STAGE     ON SCHEMA DE_HOL_XX TO ROLE {{CI_ROLE}};
 -- is the deliverable; the schedule is a bonus.
 GRANT EXECUTE TASK ON ACCOUNT TO ROLE {{CI_ROLE}};
 
+-- =====================================================================================
+-- OPTION 2: RUN SCRIPT
+-- =====================================================================================
+USE ROLE {{CI_ROLE}};
+USE DATABASE {{CI_SANDBOX_DB}};
 
+BEGIN
+    LET i INT := 1;
+    LET schema_name VARCHAR;
+
+    WHILE (i <= 14) DO
+        schema_name := 'DE_HOL_' || i::VARCHAR;
+
+        EXECUTE IMMEDIATE 'CREATE SCHEMA IF NOT EXISTS IDENTIFIER(''' || schema_name || ''')'
+            || ' COMMENT = ''Working schema for one Cortex Code DE HOL attendee. Safe to drop after the workshop.''';
+
+        EXECUTE IMMEDIATE 'GRANT USAGE          ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+        EXECUTE IMMEDIATE 'GRANT CREATE VIEW      ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+        EXECUTE IMMEDIATE 'GRANT CREATE TABLE     ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+        EXECUTE IMMEDIATE 'GRANT CREATE PROCEDURE ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+        EXECUTE IMMEDIATE 'GRANT CREATE FUNCTION  ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+        EXECUTE IMMEDIATE 'GRANT CREATE TASK      ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+        EXECUTE IMMEDIATE 'GRANT CREATE STAGE     ON SCHEMA ' || schema_name || ' TO ROLE DATA_ENGINEER';
+
+        i := i + 1;
+    END WHILE;
+END;
+
+GRANT EXECUTE TASK ON ACCOUNT TO ROLE DATA_ENGINEER;
 -- -------------------------------------------------------------------------------------
 -- Confirm: the attendee can read shared data and write to their own schema.
 -- -------------------------------------------------------------------------------------
