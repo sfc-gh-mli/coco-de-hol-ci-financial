@@ -79,7 +79,7 @@ building and sharing custom skills, and determinism — all land in Sessions 1 t
     ├── run-of-show.md           # minute by minute, cut order, decision points
     ├── troubleshooting.md
     ├── generator/               # the data generator (encodes the seven rules)
-    └── reference-plugin/        # the finished ci-de-toolkit plugin
+    └── reference-plugin/        # take-home: the skill packaged with a hook and subagent
 ```
 
 > **`facilitator/` is spoiler material.** It contains the answers, including the generator that

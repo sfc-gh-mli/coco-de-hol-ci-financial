@@ -57,67 +57,43 @@ Tell them at the start of Session 5 that the dialogs are coming and are a featur
 misconfiguration. If someone wants fewer interruptions they can switch the approval preference
 in the input bar, but do not encourage blanket bypass in a customer environment.
 
-### The skill or plugin does not appear in Session 3
+### The skill does not appear in Session 3
 
-Workspace trust. Project-scoped skills under `.snowflake/cortex/skills/` and plugins under
-`.cortex/plugins/` **only auto-activate in a trusted workspace**.
+This is the most likely thing to go wrong in the whole workshop. Two causes. The skill content is
+rarely at fault.
 
-1. Settings (gear, bottom of left sidebar) → **Plugins**.
-2. If `ci-de-toolkit` is listed but toggled off, toggle it on.
-3. If it is not listed at all, click the **↻ refresh** button in the Plugins toolbar.
-4. If it still does not appear, the workspace is untrusted — reopen the folder and accept the
-   trust prompt.
-
-This is called out as an explicit step in Getting Started for exactly this reason.
-
-### The skill or plugin does not appear in Session 3
-
-This is the most likely thing to go wrong in the whole workshop. Four causes, in frequency order.
-The skill content is rarely at fault.
-
-**1. The session has not reloaded.** Skills and plugins are discovered at session start. Writing
-one mid-session does not register it, and the symptom is indistinguishable from a broken skill.
-Fix: start a new session in the same workspace, or hit **↻ refresh** in Agent Settings → Skills
-or Plugins.
+**1. The session has not reloaded.** Skills are discovered at session start. Writing one
+mid-session does not register it, and the symptom is indistinguishable from a broken skill. Fix:
+start a new session in the same workspace, or hit **↻ refresh** in Agent Settings → Skills.
 
 Have the room do this deliberately after prompt 3.1 rather than waiting for hands to go up. Then
 have them verify by asking the agent: *"List your available skills. Is deployment-checklist among
 them, and what location was it loaded from?"* — the answer should be location **project**.
 
-**2. The manifest references a path that does not exist.** If `plugin.json` declares `./skills`,
-`./agents` or `./hooks/hooks.json` and any one is missing, the **whole plugin is invalid and
-silently does not load**. No error appears; the panel is just empty.
-
-This is why prompt 3.2 builds the directories first and the manifest last. If an attendee's agent
-reorders those steps, this is what they will hit. Diagnose it in one command:
-
-```bash
-cortex plugin validate .cortex/plugins/ci-de-toolkit
-```
-
-It names the exact offending path. A good plugin prints `is valid`.
-
-**3. Workspace not trusted.** Project plugins under `.cortex/plugins/` are **disabled by default**
-until the workspace is trusted. Settings (gear, bottom of left sidebar) → **Plugins**, set the
-**Source** filter to **Project**. If `ci-de-toolkit` is listed but greyed out, toggle it on. If it
-is absent, click **↻ refresh**. If it is still absent, the workspace is untrusted — reopen the
-folder and accept the trust prompt.
-
-**4. No `activation.md`.** A project plugin that starts out disabled is not discoverable until
-manually enabled when the manifest has no `activation.md`. The validator warns about this by name.
-
-**Wrong workspace root.** If the agent wrote to `~/.snowflake/cortex/skills/` the skill still
+**2. Wrong workspace root.** If the agent wrote to `~/.snowflake/cortex/skills/` the skill still
 works, but as a **user** skill — it will not travel with the repo, which defeats the point of
-committing it. Confirm with:
+committing it. Confirm what is actually on disk:
 
 ```bash
-find .snowflake/cortex/skills .cortex/plugins -type f 2>/dev/null
+find .snowflake/cortex/skills -type f
 ```
 
 Paths are relative to the folder opened in Desktop. If someone opened a parent directory or a
 second clone, files land somewhere the open workspace does not scan.
 
-### Cortex Code tries to run `cortex plugin install` instead of writing files
+**Workspace trust** is a contributing factor: project skills under `.snowflake/cortex/skills/`
+only auto-activate in a trusted workspace. This is called out as an explicit step in Getting
+Started for exactly this reason. If the room skipped it, reopen the folder and accept the prompt.
+
+### Someone asks about plugins
+
+Plugins are deliberately **out of scope** — they were the most fragile part of this session and
+they are not what the priorities asked for. Point them at `facilitator/reference-plugin/`, which
+packages the same skill plus a production-safety hook and a `dbt-review` subagent as
+`ci-de-toolkit`. It is take-home material, not a live exercise. Session 3's "Going further"
+expander covers the concepts in two minutes if the room wants them.
+
+### Cortex Code tries to run a `cortex` CLI command instead of writing files
 
 Bundled skills know about the CLI and can activate here. The `AGENTS.md` created in prompt 1.2
 includes an instruction not to use the `cortex` CLI, which normally prevents it. If it happens

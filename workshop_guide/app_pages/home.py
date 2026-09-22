@@ -70,7 +70,7 @@ diff claim against reality.
 
 **3. A deployment checklist skill** — your naming conventions, optimization rules, parameterization
 requirements and PII rules, encoded as a custom skill with a `resources/` folder so each area can
-be owned and reviewed independently. Then packaged as a plugin and shared with the team.
+be owned and reviewed independently. Then shared with the team, three ways.
 
 **4. AI Functions doing data engineering work** — `AI_CLASSIFY` to triage reconciliation breaks by
 root cause, and `AI_CLASSIFY` plus `AI_REDACT` to prove that nothing CI sends the vendor carries

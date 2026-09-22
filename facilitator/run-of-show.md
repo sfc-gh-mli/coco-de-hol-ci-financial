@@ -114,7 +114,9 @@ Their manager asked for four things. Name each one and where it landed:
    useful because it could *execute* — test a hypothesis, measure the residual, discard the
    hypothesis. It did not know the answer and never guessed it.
 3. **Custom skills, and sharing them** → Session 3. The point: `resources/` keeps the skill
-   maintainable, and committing the plugin to the repo means the team gets it with `git pull`.
+   maintainable, and committing it to Bitbucket means the team gets it with `git pull` — no install
+   step. For rules that should span every repo, the Snowflake stage and account-catalog routes are
+   in the session's sharing section.
 4. **Determinism** → Session 5. The point: prompts are probabilistic; stored procedures are not.
    Move agreed logic into the database and the agent's job becomes invoking it, not recomputing it.
 
@@ -129,7 +131,7 @@ methodology claims do not survive contact with that data.
 - `AGENTS.md` — CI conventions
 - `docs/vendor_methodology_reconstructed.md` — seven rules with proving SQL
 - `VENDOR_METHODOLOGY_CLAIMS` — stated-versus-actual diff
-- `.cortex/plugins/ci-de-toolkit/` — skill + `resources/` + hook + subagent
+- `.snowflake/cortex/skills/deployment-checklist/` — skill + 4-file `resources/` folder
 - `SP_VALIDATE_VENDOR_PERFORMANCE` + `VENDOR_RECON_RESULTS` + a scheduled task
 - A dbt model on a feature branch (if Session 6 ran hands-on)
 

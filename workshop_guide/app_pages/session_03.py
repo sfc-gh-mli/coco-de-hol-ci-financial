@@ -15,15 +15,15 @@ render_session_header(
     "Custom Skills & Sharing",
     "10:00 AM",
     "20 min",
-    "A deployment-checklist skill with a resources/ folder, packaged as a plugin with a safety "
-    "hook and a review subagent, and shared with the team",
+    "A deployment-checklist skill with a resources/ folder, invoked against real code, and a "
+    "concrete plan for sharing it with the team",
 )
 
 render_dependencies(
     requires="A trusted workspace and `AGENTS.md` from Session 1. The review targets ship in "
              "the repo, so nothing from Session 2 is needed.",
-    unlocks="Nothing depends on this session. Session 5 references the plugin as one rung on "
-            "the determinism ladder, but does not require it.",
+    unlocks="Nothing depends on this session. Session 5 references skills as one rung on the "
+            "determinism ladder, but does not require this one.",
 )
 
 st.space("small")
@@ -31,7 +31,7 @@ st.space("small")
 render_technologies_used([
     {"name": "Custom skills", "description": "Your team's conventions encoded once, applied consistently", "icon": "psychology"},
     {"name": "resources/ folder", "description": "Progressive disclosure — the agent loads only the rules that apply", "icon": "folder_open"},
-    {"name": "Plugins", "description": "Skills, hooks and subagents versioned and shared as one unit", "icon": "extension"},
+    {"name": "Skill sharing", "description": "Git, a Snowflake stage, or the account catalog", "icon": "share"},
 ])
 
 st.space("small")
@@ -43,8 +43,8 @@ with st.container(border=True):
 `AGENTS.md` told the agent CI's database name and naming rules, and it enforced them when asked.
 That works for context.
 
-It does not work for **process**. When the task is *"review this before we deploy it"*, there is
-a specific sequence CI wants followed, a specific set of things to check, and a specific report
+It does not work for **process**. When the task is *"review this before we deploy it"*, there is a
+specific sequence CI wants followed, a specific set of things to check, and a specific report
 format expected at the end. That is a workflow, not a fact — and a workflow that must hold
 whoever runs it, on whatever code, six months from now.
 
@@ -114,15 +114,17 @@ The workflow in SKILL.md should be:
 5. Never modify the code. Review only.
 
 Write a description that triggers on phrases like "review before deploy", "pre-deployment
-check", "is this ready to ship", "code review this SQL".""",
+check", "is this ready to ship", "code review this SQL".
+
+Then show me the finished directory tree so I can see the SKILL.md / resources split.""",
 )
 
 st.warning(
     "**A new skill is not callable until the session reloads.** Skills are discovered when a "
     "session starts, so the one you just wrote will not appear yet — this is the single most "
-    "common reason Session 3 looks broken. Either start a **new session** in the same "
-    "workspace, or open **Agent Settings → Skills** and hit the **↻ refresh** button. Then "
-    "confirm it is there before moving on: type `/` in the chat input and look for "
+    "common reason this session looks broken. Either start a **new session** in the same "
+    "workspace, or open **Agent Settings → Skills** and hit **↻ refresh**.\n\n"
+    "Then confirm before moving on: type `/` in the chat input and look for "
     "`deployment-checklist`, or ask *\"list your available skills and tell me whether "
     "deployment-checklist is among them, and what location it was loaded from\"* — you want "
     "location **project**.",
@@ -165,8 +167,8 @@ The shape:
 ```
 
 Note the location. `.snowflake/cortex/skills/` is auto-discovered in a trusted workspace — no
-registration, no install. Write the file and the skill is live. That makes it the right place to
-*develop* a skill, and the wrong place to *share* one, which is the next prompt.
+registration, no install step, no manifest. Write the files and the skill is live on the next
+session reload.
 """,
 )
 
@@ -174,70 +176,29 @@ st.space("small")
 
 render_prompt(
     "Prompt 3.2",
-    "Run it, then package it as a plugin and share it",
-    """First, use the deployment-checklist skill to review these files:
+    "Invoke the skill on real code",
+    """Use the deployment-checklist skill to review these three files:
+
 - sql/deploy/01_monthly_performance_extract.sql
 - sql/deploy/02_investor_extract_to_vendor.sql
 - dbt/models/staging/stg_HoldingsValued.sql
 
-Give me the full findings table. I want to see whether it catches things I have not told it
-to look for on this specific code.
+Give me the full findings table, then the summary and the deploy recommendation.
 
-Then package the skill for the team. Consult the Cortex Code Desktop plugin documentation
-at https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop/plugins for the
-correct schema, and write the files directly — do not use the cortex CLI.
-
-Build it in this order, and do not deviate: a manifest that points at a directory which does
-not exist yet makes the whole plugin invalid, and an invalid plugin silently does not load.
-So every directory must exist BEFORE the manifest is written.
-
-1. Move the skill, with its resources folder, to
-   .cortex/plugins/ci-de-toolkit/skills/deployment-checklist/
-2. Create the PreToolUse hook at .cortex/plugins/ci-de-toolkit/hooks/validate-bash.sh that
-   blocks any dbt command containing --target prod, with an error message saying production
-   runs go through dbt Cloud from Bitbucket, not from a laptop. Wire it up in
-   .cortex/plugins/ci-de-toolkit/hooks/hooks.json using the matcher "bash".
-3. Create the subagent at .cortex/plugins/ci-de-toolkit/agents/dbt-review.md. It runs the
-   deployment checklist autonomously and produces a PASS/FAIL report per category. It must
-   work by reviewing files at given paths. If a git remote is available it may additionally
-   diff against it, but it must not REQUIRE a reachable remote — that is a fallback, not a
-   dependency.
-4. ONLY NOW write .cortex/plugins/ci-de-toolkit/.cortex-plugin/plugin.json, with name
-   ci-de-toolkit, version 1.0.0, an author, and pointers to ./skills, ./agents and
-   ./hooks/hooks.json. Every one of those must already exist from steps 1 to 3.
-5. Also write .cortex/plugins/ci-de-toolkit/.cortex-plugin/activation.md explaining what the
-   plugin contains. This is not optional: without it, a project plugin that starts out
-   disabled will not be discoverable in the Plugins panel.
-6. Verify before telling me you are done. Run:
-       cortex plugin validate .cortex/plugins/ci-de-toolkit
-   It must print "is valid" and must NOT warn about a missing activation.md or a skill,
-   agent or hook path that does not exist. If it reports an issue, fix it and re-run.""",
-)
-
-st.warning(
-    "**Then make the plugin appear.** Project plugins live in `.cortex/plugins/` and are "
-    "**disabled by default until the workspace is trusted** — so a correct plugin can still be "
-    "invisible. Open **Agent Settings → Plugins**, set the **Source** filter to **Project**, "
-    "and look for `ci-de-toolkit`. If it is not there, click **↻ refresh**. If it is there but "
-    "greyed out, toggle it on, or trust the workspace to activate all project plugins at once.",
-    icon=":material/visibility:",
+I want to see whether it catches things I never pointed it at on this specific code — so do
+not let me tell you what is wrong with these files. Work from the skill's own rules.""",
 )
 
 st.info(
-    "**Test the hook without dbt.** Ask the agent to run `dbt build --target prod`. The hook "
-    "fires *before* the command executes, so it blocks even if dbt is not installed at all. "
-    "That is the difference between a guardrail and a suggestion — it does not depend on the "
-    "tool being present, or on the agent choosing to cooperate.",
-    icon=":material/shield:",
+    "That prompt does not name the skill's rules or the problems in the files. That is the test: "
+    "a skill that only catches the example it was written for is not a skill. If the findings "
+    "surprise you, the rules were written well.",
+    icon=":material/target:",
 )
 
 render_explanation(
     "What the review should catch, and why the second file matters",
     """
-The findings you get back should include things nobody pointed the skill at specifically. That
-is the test of whether the rules were written well: a rule that only catches the example it was
-written for is not a rule.
-
 Across the three files there are hardcoded database and schema names, hardcoded dates, a
 hardcoded list of fund codes that will drift the moment CI launches a fund, `SELECT *` in
 persisted tables, an implicit cross join, a `TO_CHAR` wrapped around a filtered date column, a
@@ -253,78 +214,172 @@ Notice how it happened: nobody decided to send investor PII to a vendor. Someone
 `SELECT *`, and the column set grew. That is why `SELECT *` over a table containing PII is a
 HIGH finding rather than a style preference, and it is the thread Session 4 picks up.
 
-**On sharing.** Three options, in the order CI should actually adopt them:
+**On the report format.** The skill specifies a findings table and an explicit deploy /
+do-not-deploy verdict. That matters more than it looks: a review that ends in prose gets
+interpreted, and a review that ends in a verdict gets acted on. If the agent softens the verdict
+because the fixes look small, that is a bug in the skill's instructions, not a judgement call —
+tighten the wording.
+""",
+)
 
-1. **Commit the plugin into the Bitbucket repo under `.cortex/plugins/`.** Auto-discovered by
-   every clone, versioned alongside the code it governs, no install step, and updates arrive
-   with `git pull`. This is the right default.
-2. **The account-level Shared Skills Catalog**, for reach across repositories. Browse, import
-   and publish from the Agent Manager sidebar. Feature-flagged as of Desktop v1.15 — check
-   availability before promising it.
-3. **`cortex plugin install` from a git URL**, for cases where the plugin is not part of the
-   repo being worked on.
+st.space("small")
 
-**Why a plugin rather than a loose skill folder.** A plugin is versioned, its manifest is
-validated on load, it installs as one unit, and it can carry hooks and subagents alongside the
-skill. A skill folder has no version, no validation, and no way to bundle a hook. Once more than
-one person depends on it, that difference stops being theoretical.
+st.markdown("#### Sharing it with the team")
+
+with st.container(border=True):
+    st.markdown("""
+Right now this skill exists on one laptop, in one workspace. Three ways to change that, in the
+order CI should actually adopt them.
+""")
+
+    with st.expander(":material/merge: **1. Commit it to Bitbucket** — the right default", expanded=True):
+        st.markdown("""
+The skill is just files. Commit the folder into the repo that already holds the code it governs:
+
+```bash
+git add .snowflake/cortex/skills/deployment-checklist
+git commit -m "Add deployment-checklist skill: CI pre-deployment review standards"
+```
+
+Anyone who clones the repo and opens it in Cortex Code Desktop gets the skill automatically —
+**no install step, no registration.** Updates arrive with `git pull`.
+
+Why this is the default:
+
+- **Versioned with the code it governs.** The rules and the SQL they check move together, so the
+  skill can never drift out of step with the conventions it enforces.
+- **Reviewable.** Changing a rule is a pull request, with a diff and an approver.
+- **Scoped.** Only people working in this repo get it, which is usually what you want for
+  repo-specific conventions.
+
+The limitation: it only reaches people working in *this* repo. For a rule set that should apply
+across every project at CI, use option 2 or 3.
+""")
+
+    with st.expander(":material/cloud_upload: **2. Publish to a Snowflake stage** — governed by grants"):
+        st.markdown("""
+Push the skill into Snowflake and let RBAC decide who can use it. No Git credentials to
+distribute, and access is auditable through the same grants as everything else.
+
+```bash
+# publisher
+cortex skill publish .snowflake/cortex/skills/deployment-checklist \\
+    --to-stage @{{CI_SANDBOX_DB}}.DE_HOL_SHARED.TEAM_SKILLS/
+
+# anyone with SELECT on the stage
+cortex skill add @{{CI_SANDBOX_DB}}.DE_HOL_SHARED.TEAM_SKILLS/deployment-checklist/
+```
+
+Good when the skill should reach people across repositories, and when you want access controlled
+by Snowflake role rather than repository membership. Note that this is a *copy*: consumers re-run
+`cortex skill add` to pick up a new version, so it does not stay in sync the way a Git clone does.
+
+There is also a Git-backed variant that creates a Snowflake Git repository pointing at your
+Bitbucket repo, which gives you Snowflake-side governance without losing Git as the source of
+truth:
+
+```bash
+cortex skill publish --from-git <your-bitbucket-repo-url> \\
+    --to-repo {{CI_SANDBOX_DB}}.DE_HOL_SHARED.CI_SKILLS_REPO
+```
+""")
+
+    with st.expander(":material/storefront: **3. Publish to the account catalog** — discoverable by everyone"):
+        st.markdown("""
+The **Skills & Plugins catalog** is Snowflake's built-in registry for sharing skills across an
+account. Entries are stored as versioned Cortex Extension objects, so access is governed by
+Snowflake roles and grants — no Git credentials, no file sharing.
+
+**To publish:** Agent Settings → **Skills**, open the skill, and use the publish action. It
+creates a Cortex Extension object in the account, uploads the files, commits a version, grants
+read access to `PUBLIC` or a role you name, and hands back a `snow://` URI to circulate.
+
+**To consume**, teammates either paste that URI into Agent Settings → **+** → *Add from catalog*,
+or use the CLI:
+
+```bash
+cortex skill find "deployment"     # discover what is published
+cortex skill add --catalog deployment-checklist
+```
+
+This is the right endpoint for a rule set that genuinely belongs to the whole organisation —
+CI's naming conventions or PII rules, rather than one repo's quirks. It is also the most work to
+maintain, because a published version is a thing people depend on: bump it deliberately.
+""")
+
+    st.markdown("""
+**A reasonable progression:** start with option 1 while the rules are still changing weekly, and
+promote to option 3 once they have stabilised and other teams start asking for them. Publishing a
+rule set that is still in flux just means everyone inherits your half-finished thinking.
+""")
+
+st.space("small")
+
+render_explanation(
+    "Going further: hooks, subagents and plugins",
+    """
+Not part of this session — there is not time — but worth knowing they exist, because they are the
+next things you will want.
+
+A skill **guides** the agent. It is instructions, and the agent can in principle ignore them.
+For a rule that must never be broken, you want something that does not depend on cooperation:
+
+**Hooks** are shell commands that run on lifecycle events and can *block* a tool call. A
+`PreToolUse` hook that refuses any `dbt` command containing `--target prod` is deterministic in a
+way an instruction is not — and because it fires before execution, it works even on a machine
+where dbt is not installed. Session 5 places this on the determinism ladder.
+
+**Subagents** are Markdown-defined agents that run autonomously to completion on one task, rather
+than guiding an interactive session. The same subagent can run locally before a pull request and
+headlessly in CI — the same standard applied in two contexts.
+
+**Plugins** are how you bundle all of it. A plugin is a directory with a
+`.cortex-plugin/plugin.json` manifest that packages skills, hooks, subagents and MCP servers as
+one versioned, validated, installable unit. Once more than one person depends on your rules, the
+version number and the validation step stop being theoretical.
+
+A worked example of all three — the skill you just built, plus a production-safety hook and a
+`dbt-review` subagent, packaged as `ci-de-toolkit` — is in the repo at
+`facilitator/reference-plugin/`. Take it as a starting point rather than something to build
+today.
+
+One gotcha if you do build one: if the manifest points at a `skills`, `agents` or `hooks` path
+that does not exist, the **whole plugin is invalid and silently does not load** — no error, just
+nothing in the Plugins panel. Create the directories first, write the manifest last, and check
+your work with `cortex plugin validate <path>`.
 """,
 )
 
 st.space("small")
 
 render_explanation(
-    "Troubleshooting: the skill or plugin does not appear",
+    "Troubleshooting: the skill does not appear",
     """
-Almost always one of four things, in order of how often it happens. The skill or plugin content
-is rarely the problem.
+Two causes, in order of how often they actually happen. The skill content is rarely at fault.
 
-**1. The session has not reloaded.** Skills and plugins are discovered when a session starts.
-Writing one mid-session does not register it. Start a new session in the same workspace, or use
-the **↻ refresh** button in Agent Settings → Skills / Plugins. This is the most common cause by a
-wide margin, and it looks exactly like a broken skill.
+**1. The session has not reloaded.** Skills are discovered when a session starts. Writing one
+mid-session does not register it, and the symptom is indistinguishable from a broken skill. Start
+a new session in the same workspace, or hit **↻ refresh** in Agent Settings → Skills.
 
-**2. The manifest points at something that does not exist.** If `plugin.json` declares
-`"skills": ["./skills"]`, `"agents": ["./agents"]` or `"hooks": "./hooks/hooks.json"` and any one
-of those paths is missing, the **entire plugin is invalid and silently does not load** — you get
-no error, just nothing in the panel. This is why prompt 3.2 insists on writing the manifest last.
-Check it directly:
+**2. It went to the wrong place.** Confirm what is actually on disk:
 
 ```bash
-cortex plugin validate .cortex/plugins/ci-de-toolkit
+find .snowflake/cortex/skills -type f
 ```
 
-That command names the exact broken path. A valid plugin prints `is valid`.
+The skill must be at `<workspace>/.snowflake/cortex/skills/<name>/SKILL.md`, relative to the
+folder you opened in Cortex Code Desktop. If you opened a parent directory or a second clone, the
+agent may have written it somewhere the open workspace does not scan.
 
-**3. The workspace is not trusted.** Project-scoped plugins under `.cortex/plugins/` are
-**disabled by default** until the workspace is trusted. They may appear greyed out, or not at
-all. Either toggle the plugin on individually, or trust the workspace. Also confirm the
-**Source** filter in the Plugins panel is not hiding **Project** entries.
-
-**4. No `activation.md`.** A project plugin that starts out disabled is not discoverable until
-manually enabled if the manifest has no `activation.md` alongside it. `cortex plugin validate`
-warns about this explicitly.
-
-**Confirming the skill is really loaded.** Do not rely on the agent appearing to follow it — ask
+**Confirming it is really loaded.** Do not rely on the agent appearing to follow it — ask
 directly:
 
 > List your available skills. Is `deployment-checklist` among them, and what location was it
 > loaded from?
 
-You want location **project**. If it says **user**, the skill was written to
-`~/.snowflake/cortex/skills/` instead of the project, which still works but will not travel with
-the repo — which is the entire point of committing it.
-
-**Where the files should be.** Sanity-check the layout:
-
-```bash
-find .snowflake/cortex/skills .cortex/plugins -type f 2>/dev/null
-```
-
-Skills live at `<workspace>/.snowflake/cortex/skills/<name>/SKILL.md`, and plugins at
-`<workspace>/.cortex/plugins/<name>/.cortex-plugin/plugin.json`. Both are relative to the folder
-you opened in Cortex Code Desktop. If you opened a parent directory, or a different clone, the
-agent may have written them somewhere the open workspace does not scan.
+You want location **project**. If it says **user**, the skill landed in
+`~/.snowflake/cortex/skills/` instead of the project. That still works on your machine, but it
+will not travel with the repo — which defeats the point of committing it.
 """,
 )
 
@@ -345,25 +400,24 @@ render_key_concepts([
                       "spends context on rules that do not apply.",
     },
     {
-        "term": "Plugin",
-        "definition": "A directory with a `.cortex-plugin/plugin.json` manifest that bundles "
-                      "skills, hooks, subagents and MCP servers as one versioned, validated, "
-                      "installable unit. Auto-discovered from `.cortex/plugins/` in a trusted "
-                      "workspace.",
+        "term": "Skill description as a trigger",
+        "definition": "The `description` field is what the agent matches against to decide "
+                      "whether to load the skill. Write it as the situation, not the content — "
+                      "\"use when asked to review code before deploying\" beats \"contains CI's "
+                      "deployment rules\".",
     },
     {
-        "term": "PreToolUse hook",
-        "definition": "A shell command that runs before the agent executes a tool, and can "
-                      "block it. Unlike an instruction in `AGENTS.md`, a hook is deterministic: "
-                      "it does not depend on the agent choosing to comply. The right mechanism "
-                      "for anything that must never happen.",
+        "term": "Discovery at session start",
+        "definition": "Skills and plugins are enumerated when a session begins. A skill created "
+                      "mid-session is not callable until the session reloads or the registry is "
+                      "refreshed. The most common reason a correct skill appears broken.",
     },
     {
-        "term": "Subagent",
-        "definition": "A Markdown-defined agent that runs autonomously to completion on one "
-                      "task, as opposed to a skill that guides an interactive session. The same "
-                      "subagent can run locally before a PR and headlessly in CI — same "
-                      "standard, two contexts.",
+        "term": "Sharing paths",
+        "definition": "Committing to the repo gives zero-install distribution to anyone working "
+                      "in that repo. A Snowflake stage or the account catalog reaches across "
+                      "repositories with access governed by Snowflake roles. Repo first, catalog "
+                      "once the rules have stabilised.",
     },
 ])
 
@@ -372,8 +426,6 @@ st.space("small")
 render_what_you_built([
     "A `deployment-checklist` skill with a four-file `resources/` folder, one per requirement area",
     "A findings table over three non-compliant files, including a PII leak nobody pointed it at",
-    "`ci-de-toolkit` — a versioned plugin bundling the skill, a hook and a subagent",
-    "A `PreToolUse` hook that blocks production dbt runs whether or not dbt is installed",
-    "A `dbt-review` subagent that works from file paths, with git diff as an enhancement",
-    "A concrete plan for sharing it: commit to the repo, then the account catalog",
+    "Confirmation that the skill loaded as a **project** skill, so it travels with the repo",
+    "A concrete plan for sharing it: commit to Bitbucket now, publish to the account catalog once the rules settle",
 ], session_num=3)

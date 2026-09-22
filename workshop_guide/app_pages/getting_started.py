@@ -149,10 +149,9 @@ cd coco-de-hol-ci-financial
 In Cortex Code Desktop: **File → Open Folder**, select the cloned directory.
 """)
     st.warning(
-        "**Accept the trust prompt.** Project skills under `.snowflake/cortex/skills/` and "
-        "plugins under `.cortex/plugins/` only activate in a trusted workspace — and Session 3 "
-        "has you building exactly those. Skip the prompt and the skill you write will appear "
-        "to do nothing.",
+        "**Accept the trust prompt.** Project skills under `.snowflake/cortex/skills/` only "
+        "activate in a trusted workspace — and Session 3 has you building exactly one. Skip the "
+        "prompt and the skill you write will appear to do nothing.",
         icon=":material/warning:",
     )
 
