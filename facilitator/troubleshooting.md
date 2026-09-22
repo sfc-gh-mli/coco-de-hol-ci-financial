@@ -70,6 +70,53 @@ Workspace trust. Project-scoped skills under `.snowflake/cortex/skills/` and plu
 
 This is called out as an explicit step in Getting Started for exactly this reason.
 
+### The skill or plugin does not appear in Session 3
+
+This is the most likely thing to go wrong in the whole workshop. Four causes, in frequency order.
+The skill content is rarely at fault.
+
+**1. The session has not reloaded.** Skills and plugins are discovered at session start. Writing
+one mid-session does not register it, and the symptom is indistinguishable from a broken skill.
+Fix: start a new session in the same workspace, or hit **↻ refresh** in Agent Settings → Skills
+or Plugins.
+
+Have the room do this deliberately after prompt 3.1 rather than waiting for hands to go up. Then
+have them verify by asking the agent: *"List your available skills. Is deployment-checklist among
+them, and what location was it loaded from?"* — the answer should be location **project**.
+
+**2. The manifest references a path that does not exist.** If `plugin.json` declares `./skills`,
+`./agents` or `./hooks/hooks.json` and any one is missing, the **whole plugin is invalid and
+silently does not load**. No error appears; the panel is just empty.
+
+This is why prompt 3.2 builds the directories first and the manifest last. If an attendee's agent
+reorders those steps, this is what they will hit. Diagnose it in one command:
+
+```bash
+cortex plugin validate .cortex/plugins/ci-de-toolkit
+```
+
+It names the exact offending path. A good plugin prints `is valid`.
+
+**3. Workspace not trusted.** Project plugins under `.cortex/plugins/` are **disabled by default**
+until the workspace is trusted. Settings (gear, bottom of left sidebar) → **Plugins**, set the
+**Source** filter to **Project**. If `ci-de-toolkit` is listed but greyed out, toggle it on. If it
+is absent, click **↻ refresh**. If it is still absent, the workspace is untrusted — reopen the
+folder and accept the trust prompt.
+
+**4. No `activation.md`.** A project plugin that starts out disabled is not discoverable until
+manually enabled when the manifest has no `activation.md`. The validator warns about this by name.
+
+**Wrong workspace root.** If the agent wrote to `~/.snowflake/cortex/skills/` the skill still
+works, but as a **user** skill — it will not travel with the repo, which defeats the point of
+committing it. Confirm with:
+
+```bash
+find .snowflake/cortex/skills .cortex/plugins -type f 2>/dev/null
+```
+
+Paths are relative to the folder opened in Desktop. If someone opened a parent directory or a
+second clone, files land somewhere the open workspace does not scan.
+
 ### Cortex Code tries to run `cortex plugin install` instead of writing files
 
 Bundled skills know about the CLI and can activate here. The `AGENTS.md` created in prompt 1.2

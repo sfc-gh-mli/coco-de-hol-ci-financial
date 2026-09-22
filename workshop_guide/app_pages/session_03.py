@@ -117,6 +117,18 @@ Write a description that triggers on phrases like "review before deploy", "pre-d
 check", "is this ready to ship", "code review this SQL".""",
 )
 
+st.warning(
+    "**A new skill is not callable until the session reloads.** Skills are discovered when a "
+    "session starts, so the one you just wrote will not appear yet — this is the single most "
+    "common reason Session 3 looks broken. Either start a **new session** in the same "
+    "workspace, or open **Agent Settings → Skills** and hit the **↻ refresh** button. Then "
+    "confirm it is there before moving on: type `/` in the chat input and look for "
+    "`deployment-checklist`, or ask *\"list your available skills and tell me whether "
+    "deployment-checklist is among them, and what location it was loaded from\"* — you want "
+    "location **project**.",
+    icon=":material/refresh:",
+)
+
 render_explanation(
     "Why the rules live in resources/ and not in SKILL.md",
     """
@@ -175,19 +187,40 @@ Then package the skill for the team. Consult the Cortex Code Desktop plugin docu
 at https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop/plugins for the
 correct schema, and write the files directly — do not use the cortex CLI.
 
-1. Move the skill to .cortex/plugins/ci-de-toolkit/skills/deployment-checklist/
-2. Create .cortex/plugins/ci-de-toolkit/.cortex-plugin/plugin.json with name ci-de-toolkit,
-   version 1.0.0, an author, and pointers to ./skills, ./agents and ./hooks/hooks.json.
-   Add an activation.md that briefly says what the plugin contains.
-3. Add a PreToolUse hook at hooks/validate-bash.sh that blocks any dbt command containing
-   --target prod, with an error message saying production runs go through dbt Cloud from
-   Bitbucket, not from a laptop. Wire it up in hooks/hooks.json using the matcher "bash".
-4. Add a subagent at agents/dbt-review.md that runs the deployment checklist autonomously
-   and produces a PASS/FAIL report per category. It must work by reviewing files at given
-   paths. If a git remote is available it may additionally diff against it, but it must not
-   REQUIRE a reachable remote — that is a fallback, not a dependency.
+Build it in this order, and do not deviate: a manifest that points at a directory which does
+not exist yet makes the whole plugin invalid, and an invalid plugin silently does not load.
+So every directory must exist BEFORE the manifest is written.
 
-Then verify the plugin is active: Settings, Plugins, look for ci-de-toolkit.""",
+1. Move the skill, with its resources folder, to
+   .cortex/plugins/ci-de-toolkit/skills/deployment-checklist/
+2. Create the PreToolUse hook at .cortex/plugins/ci-de-toolkit/hooks/validate-bash.sh that
+   blocks any dbt command containing --target prod, with an error message saying production
+   runs go through dbt Cloud from Bitbucket, not from a laptop. Wire it up in
+   .cortex/plugins/ci-de-toolkit/hooks/hooks.json using the matcher "bash".
+3. Create the subagent at .cortex/plugins/ci-de-toolkit/agents/dbt-review.md. It runs the
+   deployment checklist autonomously and produces a PASS/FAIL report per category. It must
+   work by reviewing files at given paths. If a git remote is available it may additionally
+   diff against it, but it must not REQUIRE a reachable remote — that is a fallback, not a
+   dependency.
+4. ONLY NOW write .cortex/plugins/ci-de-toolkit/.cortex-plugin/plugin.json, with name
+   ci-de-toolkit, version 1.0.0, an author, and pointers to ./skills, ./agents and
+   ./hooks/hooks.json. Every one of those must already exist from steps 1 to 3.
+5. Also write .cortex/plugins/ci-de-toolkit/.cortex-plugin/activation.md explaining what the
+   plugin contains. This is not optional: without it, a project plugin that starts out
+   disabled will not be discoverable in the Plugins panel.
+6. Verify before telling me you are done. Run:
+       cortex plugin validate .cortex/plugins/ci-de-toolkit
+   It must print "is valid" and must NOT warn about a missing activation.md or a skill,
+   agent or hook path that does not exist. If it reports an issue, fix it and re-run.""",
+)
+
+st.warning(
+    "**Then make the plugin appear.** Project plugins live in `.cortex/plugins/` and are "
+    "**disabled by default until the workspace is trusted** — so a correct plugin can still be "
+    "invisible. Open **Agent Settings → Plugins**, set the **Source** filter to **Project**, "
+    "and look for `ci-de-toolkit`. If it is not there, click **↻ refresh**. If it is there but "
+    "greyed out, toggle it on, or trust the workspace to activate all project plugins at once.",
+    icon=":material/visibility:",
 )
 
 st.info(
@@ -235,6 +268,63 @@ HIGH finding rather than a style preference, and it is the thread Session 4 pick
 validated on load, it installs as one unit, and it can carry hooks and subagents alongside the
 skill. A skill folder has no version, no validation, and no way to bundle a hook. Once more than
 one person depends on it, that difference stops being theoretical.
+""",
+)
+
+st.space("small")
+
+render_explanation(
+    "Troubleshooting: the skill or plugin does not appear",
+    """
+Almost always one of four things, in order of how often it happens. The skill or plugin content
+is rarely the problem.
+
+**1. The session has not reloaded.** Skills and plugins are discovered when a session starts.
+Writing one mid-session does not register it. Start a new session in the same workspace, or use
+the **↻ refresh** button in Agent Settings → Skills / Plugins. This is the most common cause by a
+wide margin, and it looks exactly like a broken skill.
+
+**2. The manifest points at something that does not exist.** If `plugin.json` declares
+`"skills": ["./skills"]`, `"agents": ["./agents"]` or `"hooks": "./hooks/hooks.json"` and any one
+of those paths is missing, the **entire plugin is invalid and silently does not load** — you get
+no error, just nothing in the panel. This is why prompt 3.2 insists on writing the manifest last.
+Check it directly:
+
+```bash
+cortex plugin validate .cortex/plugins/ci-de-toolkit
+```
+
+That command names the exact broken path. A valid plugin prints `is valid`.
+
+**3. The workspace is not trusted.** Project-scoped plugins under `.cortex/plugins/` are
+**disabled by default** until the workspace is trusted. They may appear greyed out, or not at
+all. Either toggle the plugin on individually, or trust the workspace. Also confirm the
+**Source** filter in the Plugins panel is not hiding **Project** entries.
+
+**4. No `activation.md`.** A project plugin that starts out disabled is not discoverable until
+manually enabled if the manifest has no `activation.md` alongside it. `cortex plugin validate`
+warns about this explicitly.
+
+**Confirming the skill is really loaded.** Do not rely on the agent appearing to follow it — ask
+directly:
+
+> List your available skills. Is `deployment-checklist` among them, and what location was it
+> loaded from?
+
+You want location **project**. If it says **user**, the skill was written to
+`~/.snowflake/cortex/skills/` instead of the project, which still works but will not travel with
+the repo — which is the entire point of committing it.
+
+**Where the files should be.** Sanity-check the layout:
+
+```bash
+find .snowflake/cortex/skills .cortex/plugins -type f 2>/dev/null
+```
+
+Skills live at `<workspace>/.snowflake/cortex/skills/<name>/SKILL.md`, and plugins at
+`<workspace>/.cortex/plugins/<name>/.cortex-plugin/plugin.json`. Both are relative to the folder
+you opened in Cortex Code Desktop. If you opened a parent directory, or a different clone, the
+agent may have written them somewhere the open workspace does not scan.
 """,
 )
 
