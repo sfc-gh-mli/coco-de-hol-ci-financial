@@ -51,7 +51,7 @@ distinct causes, which need different fixes:
 | **Model version drift** | The model behind `auto` changes over time. A prompt that produced correct SQL in March may not in September. |
 
 You saw the first of these in Session 4 when the same `AI_CLASSIFY` call disagreed with itself
-on the marginal rows.
+on the marginal notes.
 
 None of this makes the agent unusable. It makes it unsuitable as the **execution layer** for
 something a committee relies on. The answer is not to stop using it — it is to stop asking it to
@@ -167,8 +167,8 @@ this runs on a schedule.
 
 Part A — make the AI classification reproducible.
 
-The AI_CLASSIFY calls in Session 4 disagreed with themselves between runs. Fix that with
-every lever available, and explain what each one does:
+The AI_CLASSIFY calls in Session 4 disagreed with themselves between runs on the marginal
+notes. Fix that with every lever available, and explain what each one does:
 
 1. Pin the model explicitly by name and version rather than relying on a default alias, so
    a model upgrade cannot silently change the output.
@@ -181,7 +181,7 @@ every lever available, and explain what each one does:
 5. Record the model name and version in the output table alongside each classification, so
    a future reader knows which model produced it.
 
-Then rebuild BREAK_TRIAGE as BREAK_TRIAGE_V2 with all of that applied, run it twice into
+Then rebuild KYC_PII_SCAN as KYC_PII_SCAN_V2 with all of that applied, run it twice into
 separate tables, and show me whether the two runs now agree.
 
 Be honest in your assessment: which of these four levers actually gives determinism, and
@@ -304,6 +304,6 @@ render_what_you_built([
     "`SP_VALIDATE_VENDOR_PERFORMANCE` — the agreed calculation, deterministic by construction",
     "Proof that two runs return a byte-identical summary while the audit trail still distinguishes them",
     "A side-by-side demonstration of how the equivalent bare prompt drifts",
-    "`BREAK_TRIAGE_V2` — pinned model, enforced schema, materialised once, model version recorded",
+    "`KYC_PII_SCAN_V2` — pinned model, enforced schema, materialised once, model version recorded",
     "A monthly Task running the validation, and an alert that fires only on a NEW break",
 ], session_num=5)

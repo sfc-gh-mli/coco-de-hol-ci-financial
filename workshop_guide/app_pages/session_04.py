@@ -1,7 +1,6 @@
 import streamlit as st
 
 from components import (
-    render_checkpoint,
     render_dependencies,
     render_explanation,
     render_key_concepts,
@@ -16,13 +15,14 @@ render_session_header(
     "AI Functions for Data Engineering",
     "10:20 AM",
     "15 min",
-    "Reconciliation breaks triaged by likely cause, and a PII scan over free-text notes that "
-    "proves the outbound vendor extract is safe",
+    "A PII scan over free-text advisor notes that proves the outbound vendor extract is unsafe, "
+    "measured against a regex baseline, then fixed",
 )
 
 render_dependencies(
-    requires="`SNOWFLAKE.CORTEX_USER` on your role. Prompt 4.1 uses the reconciliation from "
-             "Session 2 — use the checkpoint script if you did not finish it.",
+    requires="`SNOWFLAKE.CORTEX_USER` on your role. Nothing else — this session reads "
+             "`INVESTOR_ACCOUNTS` from the shared schema, so it does not depend on Session 2 or "
+             "Session 3 having finished.",
     unlocks="Session 5 resolves the non-determinism you are about to see in the AI output. "
             "Nothing else depends on this session.",
 )
@@ -32,7 +32,6 @@ st.space("small")
 render_technologies_used([
     {"name": "AI_CLASSIFY", "description": "Categorise rows against labels you define, in SQL", "icon": "label"},
     {"name": "AI_REDACT", "description": "Remove personal identifiers from free text", "icon": "visibility_off"},
-    {"name": "AI_COMPLETE", "description": "Structured output with an enforced response schema", "icon": "auto_awesome"},
 ])
 
 st.space("small")
@@ -51,89 +50,17 @@ AI functions earn their place on the parts of data engineering that are **not** 
 - work that does not scale by reading harder, because there are three hundred documents
 
 You already used one in Session 2. `AI_EXTRACT` turned three pages of vendor prose into a table
-you could diff. This session does two more, both on work CI has to do anyway.
+you could diff. This session does one more, on a problem Session 3 just handed you.
 """)
 
 st.space("small")
 
 render_prompt(
     "Prompt 4.1",
-    "Triage the reconciliation breaks by likely cause",
-    """I want to turn the reconciliation residuals into a triage queue instead of a wall of
-numbers.
-
-Build a table BREAK_TRIAGE in my DE_HOL_XX schema, from the residual view I created in
-Session 2 (V_VENDOR_RECON_RESIDUALS, or your equivalent).
-
-For every fund-month, assemble a short text description of the evidence: the residual in
-basis points on each column, whether a cash flow occurred that month and on which day,
-whether a distribution was paid, the number of business days in the month, and the size of
-the return.
-
-Then use AI_CLASSIFY over that description to assign a likely root cause from exactly
-these categories:
-- FX_TIMING
-- FLOW_TIMING
-- FEE_BASIS
-- BENCHMARK_CONSTRUCTION
-- PERFORMANCE_FEE
-- NO_BREAK
-
-Include the reasoning alongside the classification, and a confidence level.
-
-Then show me two things:
-1. A summary: count of fund-months per category.
-2. The rows classified as anything other than NO_BREAK, with the evidence and the
-   classification side by side, so I can judge whether the classification is sensible.
-
-Finally: run the exact same classification a second time into a separate table, and show
-me any row where the two runs disagree.""",
-)
-
-st.info(
-    "That last instruction is not a bug hunt — it is the setup for the next session. Note what "
-    "you see and hold the question.",
-    icon=":material/pin:",
-)
-
-render_explanation(
-    "Why classify a number you could threshold",
-    """
-A fair objection: you already know which rule causes which break, and a `CASE` statement would
-be faster, cheaper and deterministic. For *this* dataset, that objection is correct — and you
-should prefer the `CASE` statement.
-
-What makes the pattern useful is what happens next month, when Meridian changes something and
-the break has a cause that is not in your `CASE` statement. A threshold rule returns
-`UNKNOWN`. A classifier returns a reasoned guess and a confidence, which is a better starting
-point for a human who has forty rows to work through before a committee meeting.
-
-So the honest framing is: **AI_CLASSIFY is for triage, not for truth.** It ranks and routes;
-the SQL reconciliation decides. Anyone who inverts that — letting the classification stand as
-the finding — has built something worse than the `CASE` statement.
-
-Two things to notice in the output:
-
-**Include the evidence, not the raw number.** Handing the model `net_resid_bps = 74.8` gives it
-nothing to reason from. Handing it *"residual 74.8 bps; a distribution was paid on the last
-business day; no subscription or redemption this month"* gives it something a person could also
-reason from. Feature engineering for a classifier is still feature engineering.
-
-**The two runs will not fully agree.** On the clear-cut rows they will. On the marginal ones —
-low residual, ambiguous evidence — you will see the classification move. That is not a defect in
-the function; it is what a sampled model does. It is also completely unacceptable in a control
-that compliance relies on, which is the problem Session 5 exists to solve.
-""",
-)
-
-st.space("small")
-
-render_prompt(
-    "Prompt 4.2",
     "Prove the outbound vendor extract carries no investor PII",
-    """In Session 3 the deployment checklist flagged that
-sql/deploy/02_investor_extract_to_vendor.sql sends SELECT * from INVESTOR_ACCOUNTS to
-Meridian. Let's quantify the exposure and then fix it properly.
+    """The file sql/deploy/02_investor_extract_to_vendor.sql sends SELECT * from
+INVESTOR_ACCOUNTS to Meridian every month. Let's quantify the exposure and then fix it
+properly.
 
 INVESTOR_ACCOUNTS.KYC_NOTES is free-text advisor commentary. Some rows embed personal
 identifiers mid-sentence; most do not.
@@ -160,7 +87,17 @@ identifiers mid-sentence; most do not.
    Explain in a comment at the top of the file what changed and why.
 
 6. Write me a one-paragraph summary I could send to compliance stating what was exposed,
-   how many records, and what the fix was.""",
+   how many records, and what the fix was.
+
+7. Last thing, and do not fix it: re-run the exact same AI_CLASSIFY step from step 2 into a
+   second table KYC_PII_SCAN_RUN2. Show me the count of notes where the two runs disagree,
+   and two examples. I want to see it, not solve it.""",
+)
+
+st.info(
+    "Step 7 is not a bug hunt — it is the setup for the next session. Note what you see and hold "
+    "the question.",
+    icon=":material/pin:",
 )
 
 render_explanation(
@@ -202,11 +139,35 @@ enumerating columns; the control is the check running every time.
 
 st.space("small")
 
-render_checkpoint(
-    "scripts/checkpoints/after_session_02.sql",
-    "Prompt 4.1 needs the reconciliation from Session 2. If you do not have "
-    "`V_VENDOR_RECON_RESIDUALS`, run this first — it creates it in about 30 seconds. "
-    "Prompt 4.2 needs nothing from Session 2 and can be done in either order.",
+render_explanation(
+    "Take-home: the same pattern for reconciliation breaks",
+    """
+Nothing to build here — 15 minutes does not stretch that far — but this is the other obvious place
+CI can use `AI_CLASSIFY`, and it is worth two minutes of thought before you leave.
+
+You have a residual view from Session 2: a wall of numbers where a handful of fund-months are off
+by a few basis points. Turning that into a **triage queue** means assembling a short text
+description of the evidence for each break — *"residual 74.8 bps; a distribution was paid on the
+last business day; no subscription or redemption this month"* — and classifying it against
+categories you define: `FX_TIMING`, `FLOW_TIMING`, `FEE_BASIS`, `PERFORMANCE_FEE`, `NO_BREAK`.
+
+Two things make the difference between that working and not working:
+
+**Hand the model evidence, not the raw number.** `net_resid_bps = 74.8` gives it nothing to reason
+from. The sentence above gives it something a person could also reason from. Feature engineering
+for a classifier is still feature engineering, and it is most of the work.
+
+**`AI_CLASSIFY` is for triage, not for truth.** A `CASE` statement over known thresholds is
+faster, cheaper and deterministic, and for the breaks you already understand you should prefer it.
+The classifier earns its place on the long tail — next month, when Meridian changes something and
+the cause is not in your `CASE` statement. A threshold rule returns `UNKNOWN`; a classifier
+returns a reasoned guess and a confidence, which is a better starting point for whoever has forty
+rows to work through before a committee meeting.
+
+What must not happen is the inversion: letting the classification stand as the finding. The
+classifier ranks and routes; the SQL reconciliation decides. Get that backwards and you have built
+something less reliable than the `CASE` statement you replaced.
+""",
 )
 
 st.space("small")
@@ -227,11 +188,11 @@ render_key_concepts([
                       "identifier will be.",
     },
     {
-        "term": "Evidence assembly",
-        "definition": "Giving a classifier a description a human could also reason from, instead "
-                      "of raw numbers. \"Residual 74.8 bps, distribution paid on the last "
-                      "business day, no other flows\" classifies well. \"74.8\" does not. This is "
-                      "feature engineering, and it is most of the work.",
+        "term": "Regex baseline",
+        "definition": "Measuring a pattern match before reaching for an AI function, so the "
+                      "comparison means something. Without a baseline, \"the AI found PII\" is a "
+                      "claim. With one, you can say how many rows a regex missed and point at "
+                      "them.",
     },
     {
         "term": "Triage versus truth",
@@ -251,10 +212,10 @@ render_key_concepts([
 st.space("small")
 
 render_what_you_built([
-    "`BREAK_TRIAGE` — reconciliation residuals classified by likely root cause with reasoning and confidence",
-    "Evidence that the same classification run twice does not always agree",
-    "`KYC_PII_SCAN` — every free-text note classified for PII, with the identifier type",
+    "`KYC_PII_SCAN` — every free-text advisor note classified for PII, with the identifier type",
     "A measured comparison showing what a regex baseline missed, and why",
+    "A redacted version of the notes column, with before-and-after pairs",
     "A rewritten outbound vendor extract with columns enumerated, identifiers dropped, and the schema parameterised",
     "A compliance-ready summary of what was exposed and what the fix was",
+    "Evidence that the same classification run twice does not always agree — the problem Session 5 solves",
 ], session_num=4)

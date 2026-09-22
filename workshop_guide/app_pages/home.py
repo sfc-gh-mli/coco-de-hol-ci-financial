@@ -72,9 +72,9 @@ diff claim against reality.
 requirements and PII rules, encoded as a custom skill with a `resources/` folder so each area can
 be owned and reviewed independently. Then shared with the team, three ways.
 
-**4. AI Functions doing data engineering work** — `AI_CLASSIFY` to triage reconciliation breaks by
-root cause, and `AI_CLASSIFY` plus `AI_REDACT` to prove that nothing CI sends the vendor carries
-investor PII buried in free-text advisor notes.
+**4. AI Functions doing data engineering work** — `AI_CLASSIFY` and `AI_REDACT` over free-text
+advisor notes, measured against a regex baseline, to prove that what CI sends the vendor carries
+investor PII buried in prose — and then to fix it.
 
 **5. A deterministic validation procedure** — the agreed calculation moved out of the prompt and
 into a Snowflake stored procedure, so the same inputs produce byte-identical output every run.

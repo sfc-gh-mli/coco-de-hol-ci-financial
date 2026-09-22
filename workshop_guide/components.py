@@ -4,7 +4,7 @@ SESSION_PROMPTS = {
     1: ["Prompt 1.1", "Prompt 1.2", "Prompt 1.3"],
     2: ["Prompt 2.1", "Prompt 2.2", "Prompt 2.3", "Prompt 2.4"],
     3: ["Prompt 3.1", "Prompt 3.2"],
-    4: ["Prompt 4.1", "Prompt 4.2"],
+    4: ["Prompt 4.1"],
     5: ["Prompt 5.1", "Prompt 5.2"],
     6: ["Prompt 6.1", "Prompt 6.2"],
 }

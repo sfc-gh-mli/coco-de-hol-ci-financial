@@ -94,18 +94,18 @@ BEGIN
              'Prompt 5.2 falls back to discussing the pattern. Error: ' || SQLERRM);
     END;
 
-    -- 3 -- AI_CLASSIFY. Used for break triage and the PII scan.
+    -- 3 -- AI_CLASSIFY. Used for the PII scan in Session 4.
     BEGIN
         SELECT AI_CLASSIFY('Spoke with the client at (416) 555-0199 to confirm.',
                            ['CONTAINS_PII', 'NO_PII']):labels[0]::VARCHAR
         INTO :v_text;
         INSERT INTO AI_PREFLIGHT_RESULTS VALUES
-            (3, 'AI_CLASSIFY', 'Session 4 (prompts 4.1, 4.2)',
+            (3, 'AI_CLASSIFY', 'Session 4 (prompt 4.1)',
              IFF(:v_text = 'CONTAINS_PII', 'PASS', 'PASS (unexpected label)'),
              'classified as: ' || :v_text);
     EXCEPTION WHEN OTHER THEN
         INSERT INTO AI_PREFLIGHT_RESULTS VALUES
-            (3, 'AI_CLASSIFY', 'Session 4 (prompts 4.1, 4.2)', 'FAIL',
+            (3, 'AI_CLASSIFY', 'Session 4 (prompt 4.1)', 'FAIL',
              'Session 4 becomes a facilitator demo. Error: ' || SQLERRM);
     END;
 
@@ -114,11 +114,11 @@ BEGIN
         SELECT AI_REDACT('Call Priya Singh at (416) 555-0199 or priya@example-mail.ca')
         INTO :v_text;
         INSERT INTO AI_PREFLIGHT_RESULTS VALUES
-            (4, 'AI_REDACT', 'Session 4 (prompt 4.2)', 'PASS', 'returned: ' || :v_text);
+            (4, 'AI_REDACT', 'Session 4 (prompt 4.1)', 'PASS', 'returned: ' || :v_text);
     EXCEPTION WHEN OTHER THEN
         INSERT INTO AI_PREFLIGHT_RESULTS VALUES
-            (4, 'AI_REDACT', 'Session 4 (prompt 4.2)', 'FAIL',
-             'Prompt 4.2 can still classify, but not redact. Error: ' || SQLERRM);
+            (4, 'AI_REDACT', 'Session 4 (prompt 4.1)', 'FAIL',
+             'Prompt 4.1 can still classify, but not redact. Error: ' || SQLERRM);
     END;
 
     -- 5 -- AI_EXTRACT. Pulls the vendor's stated claims out of prose.

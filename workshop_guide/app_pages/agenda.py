@@ -31,7 +31,7 @@ st.markdown("""
 | **Reconstructed methodology doc** | 1 | Seven rules with the proving SQL for each |
 | **Stated-vs-actual claim diff** | 1 | `VENDOR_METHODOLOGY_CLAIMS` from the vendor PDF via `AI_EXTRACT` |
 | **Custom skill** | 1 | `deployment-checklist` with a 4-file `resources/` folder, committed to the repo |
-| **AI-assisted break triage** | 1 | `AI_CLASSIFY` over reconciliation residuals |
+| **AI-assisted PII scan** | 1 | `AI_CLASSIFY` + `AI_REDACT` over free-text advisor notes |
 | **PII scan + redaction** | 2 | `AI_CLASSIFY` and `AI_REDACT` over free-text KYC notes |
 | **Stored procedure** | 1 | `SP_VALIDATE_VENDOR_PERFORMANCE` — deterministic, auditable |
 | **Audit table + Task** | 2 | `VENDOR_RECON_RESULTS` and a scheduled validation task |

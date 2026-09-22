@@ -71,7 +71,11 @@ Cut in this order. Every item is safe to cut — nothing downstream depends on a
 1. **Prompt 2.4** (the AI_EXTRACT claim diff). Costs 8 minutes. Painful to lose because it is
    the best moment in the lab, but it is additive to Session 2 rather than load-bearing.
 2. **Session 6 entirely.** Costs 15 minutes. Already flagged as stretch.
-3. **Prompt 4.2** (PII classify and redact). Costs 7 minutes.
+3. **Session 4 entirely** (the PII classify and redact). Costs 15 minutes. It is now a single
+   prompt, so there is no partial cut available — either run it or drop the session. If you are
+   short by less than that, drop steps 4 and 7 (the redaction demo and the two-run comparison) and
+   keep steps 1–3, which carry the finding. Losing step 7 costs Session 5 its concrete example of
+   AI non-determinism, so mention it verbally instead.
 4. **Prompt 1.3** (bundled skills tour) → point at `skills_reference/recommended-bundled-skills.md`
    and move on. Costs 5 minutes.
 
