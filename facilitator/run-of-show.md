@@ -82,13 +82,17 @@ Cut in this order. Every item is safe to cut — nothing downstream depends on a
 Do **not** cut Session 5. Determinism is one of the four things their manager explicitly asked
 for, and it is the session that reframes everything before it.
 
-## If you are running short
+## If you are ahead of schedule
 
 - Have attendees run the full seven-rule reconciliation against all six funds rather than one.
 - In Session 3, add a second resource file to the skill and show how the agent picks only the
   relevant one.
-- In Session 5, run the bare-prompt-twice comparison a third time to show the drift is not a
-  one-off.
+- In Session 5, actually run the bare-prompt contrast that the session only describes: in two fresh
+  sessions, ask *"reconcile the vendor performance figures and tell me which fund-months break"*
+  and diff the two answers against each other and against the procedure's output. This was cut from
+  the prompts because it costs 5 minutes and needs two clean contexts, but it is the single most
+  convincing demonstration in the lab if you have the time — the answers are usually both *right*
+  and never the *same*.
 
 ---
 

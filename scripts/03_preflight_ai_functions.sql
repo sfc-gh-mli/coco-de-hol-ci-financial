@@ -86,12 +86,12 @@ BEGIN
                    }
                ) INTO :v_text;
         INSERT INTO AI_PREFLIGHT_RESULTS VALUES
-            (2, 'AI_COMPLETE structured output', 'Session 5 (prompt 5.2)', 'PASS',
+            (2, 'AI_COMPLETE structured output', 'Reference only -- no prompt depends on it', 'PASS',
              'returned: ' || LEFT(:v_text, 120));
     EXCEPTION WHEN OTHER THEN
         INSERT INTO AI_PREFLIGHT_RESULTS VALUES
-            (2, 'AI_COMPLETE structured output', 'Session 5 (prompt 5.2)', 'FAIL',
-             'Prompt 5.2 falls back to discussing the pattern. Error: ' || SQLERRM);
+            (2, 'AI_COMPLETE structured output', 'Reference only -- no prompt depends on it', 'FAIL',
+             'Nothing to change -- Session 5 only discusses this lever. Error: ' || SQLERRM);
     END;
 
     -- 3 -- AI_CLASSIFY. Used for the PII scan in Session 4.

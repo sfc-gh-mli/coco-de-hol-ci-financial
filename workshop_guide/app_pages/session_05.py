@@ -16,8 +16,8 @@ render_session_header(
     "Determinism",
     "10:35 AM",
     "20 min",
-    "The agreed calculation moved out of the prompt and into a stored procedure, scheduled, "
-    "audited, and reproducible — including the AI function calls",
+    "The agreed calculation moved out of the prompt and into a stored procedure, proven "
+    "reproducible, then scheduled and alerted on",
 )
 
 render_dependencies(
@@ -30,8 +30,8 @@ st.space("small")
 
 render_technologies_used([
     {"name": "SQL stored procedures", "description": "Agreed logic living in the database, not in a prompt", "icon": "functions"},
+    {"name": "Audit tables", "description": "Provenance columns deliberately separated from result columns", "icon": "history"},
     {"name": "Snowflake Tasks", "description": "Scheduled execution with no dbt involvement", "icon": "schedule"},
-    {"name": "Structured output", "description": "Pinned models and enforced response schemas for AI calls", "icon": "data_object"},
 ])
 
 st.space("small")
@@ -81,7 +81,7 @@ st.space("small")
 
 render_prompt(
     "Prompt 5.1",
-    "Move the calculation into a stored procedure, then prove it is deterministic",
+    "Move the calculation into a stored procedure",
     """The reconciliation we built in Session 2 is agreed logic now. Let's take it out of the
 prompt and put it in the database.
 
@@ -102,17 +102,7 @@ prompt and put it in the database.
      WHERE fund_code = :P_FUND_CODE. Without the colon Snowflake reads them as column
      identifiers and raises "invalid identifier".
 
-3. Now prove it. Call the procedure twice with the same arguments. Show me:
-   - the two return values side by side
-   - a query grouping VENDOR_RECON_RESULTS by fund and period, showing that the number of
-     distinct RUN_IDs is 2 while the number of distinct statuses and residuals is 1
-
-4. Then the contrast. In a fresh context, ask yourself in plain language — no procedure —
-   "reconcile the vendor performance figures and tell me which fund-months break". Do it
-   twice. Show me how the two answers differ: the SQL formulation, the column selection,
-   the wording, the ordering, the precision reported.
-
-Tell me plainly what is stable in each approach and what is not.""",
+Then show me the CREATE statements and confirm the procedure compiles. Do not run it yet.""",
 )
 
 st.warning(
@@ -123,37 +113,28 @@ st.warning(
 )
 
 render_explanation(
-    "What determinism does and does not mean",
+    "Why the table is split into provenance and result",
     """
-Step 3 is worth doing carefully because the naive version of this claim is wrong, and someone in
-the room will notice.
+This split is the whole design, and it is worth a minute before you run anything — because the
+naive version of the determinism claim is wrong, and someone in the room will notice.
 
 **The timestamp differs on every run. That is correct behaviour.** If it did not, you could not
 distinguish one run from another, and the audit trail would be worthless. Determinism is a
-property of the *result*, not of the provenance. Hence the deliberate split in the table: two
-groups of columns with opposite requirements, commented so the next person does not "fix" the
-timestamp.
+property of the *result*, not of the provenance. Hence two groups of columns with opposite
+requirements, commented in the DDL so the next person does not "fix" the timestamp.
 
-This is why the procedure's return value excludes the run id. The summary string is the thing
+This is also why the procedure's return value excludes the run id. The summary string is the thing
 you can assert on in a test, diff between environments, or alert on. A return value containing a
-UUID cannot be compared to anything.
+UUID cannot be compared to anything — which makes it useless for exactly the purpose you built it
+for.
 
-**What step 4 actually shows.** The bare prompt will probably produce the *right answer* both
-times — the model is capable. What it will not produce is the *same* answer. Expect variation in
-which columns it selects, how it formats the residual, how many decimal places it reports,
-whether it sorts by fund or by residual, and how it words the summary.
-
-For exploration, that variation is harmless and sometimes useful. For a monthly control that
-feeds a committee pack, it means you cannot diff this month against last month, cannot write a
-regression test, and cannot tell a change in the data from a change in the phrasing.
-
-**The shift in the agent's role.** Before this session the agent computed the reconciliation.
-After it, the agent calls `SP_VALIDATE_VENDOR_PERFORMANCE`. The intelligence went into building
-the procedure — which is where you want it, because that work was reviewed. What remains is
+**The shift in the agent's role.** Before this session the agent computed the reconciliation. After
+it, the agent calls `SP_VALIDATE_VENDOR_PERFORMANCE`. The intelligence went into building the
+procedure — which is where you want it, because that work was reviewed. What remains is
 invocation, and invocation is cheap to verify.
 
-That is the whole answer to "how do we get consistent results": stop asking the model to
-recompute what has already been agreed.
+That is the whole answer to "how do we get consistent results": stop asking the model to recompute
+what has already been agreed.
 """,
 )
 
@@ -161,33 +142,22 @@ st.space("small")
 
 render_prompt(
     "Prompt 5.2",
-    "Make the AI function calls reproducible, and schedule the whole thing",
-    """Two things to finish: the AI calls from Session 4 are not reproducible yet, and none of
-this runs on a schedule.
+    "Prove it is deterministic, then put it on a schedule",
+    """Now prove the procedure behaves the way we designed it, and then make it run without
+anyone remembering to.
 
-Part A — make the AI classification reproducible.
+Part A — prove determinism.
 
-The AI_CLASSIFY calls in Session 4 disagreed with themselves between runs on the marginal
-notes. Fix that with every lever available, and explain what each one does:
+Call SP_VALIDATE_VENDOR_PERFORMANCE('ALL', NULL) twice with the same arguments. Show me:
 
-1. Pin the model explicitly by name and version rather than relying on a default alias, so
-   a model upgrade cannot silently change the output.
-2. Use AI_COMPLETE with an enforced response schema instead of free-form output, so the
-   shape of the answer is fixed even if the wording varies.
-3. Set temperature to 0 where the function supports it.
-4. Most important: MATERIALISE the classification once into a table rather than calling the
-   AI function inside a view. Explain why a view that calls an AI function is a correctness
-   problem, not just a cost problem.
-5. Record the model name and version in the output table alongside each classification, so
-   a future reader knows which model produced it.
+1. The two return values side by side, and whether they are byte-identical.
+2. A query grouping VENDOR_RECON_RESULTS by fund and period that shows the number of
+   distinct RUN_IDs is 2 while the number of distinct statuses and residuals is 1.
 
-Then rebuild KYC_PII_SCAN as KYC_PII_SCAN_V2 with all of that applied, run it twice into
-separate tables, and show me whether the two runs now agree.
+State plainly which columns changed between the runs and which did not, and why that is the
+correct outcome rather than a bug.
 
-Be honest in your assessment: which of these four levers actually gives determinism, and
-which only reduce variance?
-
-Part B — schedule the deterministic validation.
+Part B — schedule it.
 
 Create a Snowflake Task that calls SP_VALIDATE_VENDOR_PERFORMANCE('ALL', NULL) on the 5th
 of each month. Use a Snowflake Task rather than dbt so this does not depend on dbt Cloud.
@@ -199,16 +169,46 @@ someone up for — a new break, not a known one.""",
 )
 
 st.info(
-    "Note the asymmetry in Part A. Pinning the model and fixing the schema **reduce variance**. "
-    "Materialising the output once is the only step that gives you actual determinism — because "
-    "after it, there is no model call left to vary.",
+    "Part A is the payoff for the column split in 5.1. The `RUN_ID` and timestamp differing is "
+    "what makes the audit trail usable; the residuals and statuses not differing is what makes "
+    "the control trustworthy. Both facts matter, and they are not in tension.",
     icon=":material/lightbulb:",
 )
 
 render_explanation(
-    "Why a view that calls an AI function is a correctness problem",
+    "What this replaces, and why a Task rather than dbt",
     """
-This is the part most worth taking away, because it is a mistake that looks like good practice.
+**The contrast worth naming out loud.** If you asked the agent in plain language — *"reconcile the
+vendor performance figures and tell me which fund-months break"* — twice in fresh sessions, it
+would probably produce the *right answer* both times. The model is capable. What it would not
+produce is the *same* answer. Expect variation in which columns it selects, how it formats the
+residual, how many decimal places it reports, whether it sorts by fund or by residual, and how it
+words the summary.
+
+For exploration, that variation is harmless and occasionally useful. For a monthly control that
+feeds a committee pack, it means you cannot diff this month against last month, cannot write a
+regression test, and cannot tell a change in the data from a change in the phrasing. The procedure
+removes that whole class of problem, which is why it is rung 6 on the ladder.
+
+**Why a Task rather than a dbt post-hook.** A `post-hook` on a dbt model would work, and it is a
+reasonable pattern once CI's dbt Cloud project is configured. A Snowflake Task depends on nothing
+outside Snowflake, which means this control keeps running whether or not the dbt schedule is
+healthy — and a validation check that shares a failure mode with the pipeline it validates is not
+much of a control.
+
+**Why the alert is on a *new* break, not on any break.** Some of these fund-months will always
+break; they are known methodology differences with Meridian. An alert that fires on all of them
+gets muted within a month, and a muted alert is worse than no alert because it creates the
+impression of monitoring. Alerting on the *delta* is what keeps it meaningful.
+""",
+)
+
+render_explanation(
+    "Closing the loop on Session 4: never put an AI function in a view",
+    """
+Nothing to build here, but this is the answer to the thing you were told to hold in Session 4 —
+where the same `AI_CLASSIFY` call disagreed with itself between two runs. It is also the mistake
+that looks most like good practice.
 
 A view is normally a definition, not data. Query it twice, get the same answer twice — that
 assumption is so deep that nobody states it. An AI function inside a view breaks it. Every query
@@ -224,28 +224,27 @@ It is also expensive — every query pays for inference again — but the cost i
 Cost shows up on a bill where someone will notice. Silent instability in a committee number does
 not.
 
-**The pattern:** call the AI function once, write the result to a table with the model name and
-the run timestamp, and point everything downstream at the table. The AI call becomes an
-ingestion step with a recorded provenance, which is exactly how you would treat any other
-external input.
+**The pattern:** call the AI function once, write the result to a table with the model name and the
+run timestamp, and point everything downstream at the table. The AI call becomes an ingestion step
+with a recorded provenance, which is exactly how you would treat any other external input.
 
 Stated as a rule worth keeping: **an AI function belongs in an `INSERT`, not in a `SELECT` that
 others depend on.**
 
-**On the honest assessment.** Pinning the model prevents a version upgrade from changing your
-output — real and important, but it does not make two calls to the same version agree. A response
-schema fixes the shape, not the content. Temperature 0 substantially reduces variance but is not
-a guarantee across all functions and inputs. Only materialisation removes the variance entirely,
-because after it there is nothing left to sample.
+**The four levers, honestly ranked.** If you need to tighten an AI call, these are the options —
+and only one of them actually settles it:
 
-So the ladder for AI calls specifically is: pin the model, fix the schema, lower the temperature
-— and then materialise, which is the step that actually settles it.
+| Lever | What it fixes | Gives determinism? |
+|---|---|---|
+| Pin the model by name and version | A silent upgrade changing your output | No |
+| Enforce a response schema | The shape of the answer | No — shape only, not content |
+| Temperature 0 | Most of the sampling variance | Not guaranteed across all inputs |
+| **Materialise once into a table** | Everything | **Yes** |
 
-**Why a Task rather than a dbt post-hook.** A `post-hook` on a dbt model would work, and it is a
-reasonable pattern once CI's dbt Cloud project is configured. A Snowflake Task depends on nothing
-outside Snowflake, which means this control keeps running whether or not the dbt schedule is
-healthy — and a validation check that shares a failure mode with the pipeline it validates is not
-much of a control.
+The first three reduce variance. Materialisation removes it, because after it there is no model
+call left to vary. Note that this is the same shape as the determinism ladder above: the
+weaker rungs make the right outcome *likely*, and the strongest rung makes the wrong one
+*impossible*.
 """,
 )
 
@@ -303,7 +302,6 @@ render_what_you_built([
     "`VENDOR_RECON_RESULTS` — an audit table that separates stable results from varying provenance",
     "`SP_VALIDATE_VENDOR_PERFORMANCE` — the agreed calculation, deterministic by construction",
     "Proof that two runs return a byte-identical summary while the audit trail still distinguishes them",
-    "A side-by-side demonstration of how the equivalent bare prompt drifts",
-    "`KYC_PII_SCAN_V2` — pinned model, enforced schema, materialised once, model version recorded",
-    "A monthly Task running the validation, and an alert that fires only on a NEW break",
+    "A monthly Task running the validation with no dbt dependency",
+    "An alert that fires only on a NEW break, not on the known methodology differences",
 ], session_num=5)
